@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-paper: #faf6ef;
+  --color-paper-deep: #f0e8da;
+  --color-ink: #3d3429;
+  --color-ink-soft: #6b5f52;
+  --color-matcha: #5c7a52;
+  --color-matcha-light: #d8e8cf;
+  --color-matcha-dark: #3f5538;
+  --color-blush: #e8cfc0;
+  --font-hand: var(--font-caveat), cursive;
+  --font-menu: var(--font-patrick), "Segoe Print", cursive, sans-serif;
+  --font-receipt: var(--font-receipt), "Courier New", monospace;
+}
