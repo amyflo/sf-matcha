@@ -2,7 +2,8 @@
 
 Find matcha cafes in San Francisco with AI-powered recommendations, served as printable receipt cards.
 
-**Live site:** [exa-matcha.netlify.app](https://exa-matcha.netlify.app)
+https://www.youtube.com/watch?v=UjzXTGQOkz8
+
 
 ## What it does
 
