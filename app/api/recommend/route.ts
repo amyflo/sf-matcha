@@ -1,5 +1,6 @@
 import { EXAMPLE_CAFE } from "@/lib/example-cafe";
 import { recommendMatchaCafes } from "@/lib/matcha-search";
+import { getExaApiKey } from "@/lib/netlify-env";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!process.env.EXA_API_KEY) {
+    if (!getExaApiKey()) {
       return NextResponse.json({
         cafes: [EXAMPLE_CAFE],
         requestId: "local-example",

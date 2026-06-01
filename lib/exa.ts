@@ -1,11 +1,8 @@
+import { requireNetlifyEnv } from "@/lib/netlify-env";
 import Exa from "exa-js";
 
 function getExaClient(): Exa {
-  const apiKey = process.env.EXA_API_KEY;
-  if (!apiKey) {
-    throw new Error("EXA_API_KEY is not set");
-  }
-  return new Exa(apiKey);
+  return new Exa(requireNetlifyEnv("EXA_API_KEY"));
 }
 
 let client: Exa | null = null;
