@@ -96,6 +96,11 @@ export function ReviewPhotoCarousel({
             loading={index === 0 ? "eager" : "lazy"}
             referrerPolicy="no-referrer"
           />
+          <div className="absolute inset-x-0 bottom-0 flex items-end justify-end gap-2 bg-gradient-to-t from-ink/70 to-transparent px-3 pb-2.5 pt-6">
+            <span className="font-receipt text-[10px] uppercase tracking-wider text-white/85">
+              {index + 1} / {images.length}
+            </span>
+          </div>
         </button>
 
         {images.length > 1 ? (
@@ -117,7 +122,7 @@ export function ReviewPhotoCarousel({
               ›
             </button>
             <div
-              className="absolute bottom-2.5 left-1/2 z-2 flex -translate-x-1/2 gap-1.5"
+              className="absolute bottom-2 left-1/2 z-2 flex -translate-x-1/2 gap-1.5"
               role="tablist"
               aria-label="Review photos"
             >
