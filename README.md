@@ -2,7 +2,9 @@
 
 Find matcha cafes in San Francisco with AI-powered recommendations, served as printable receipt cards.
 
-[https://www.youtube.com/watch?v=UjzXTGQOkz8](https://youtu.be/vsp0fNUZScM)
+[[https://www.youtube.com/watch?v=UjzXTGQOkz8](https://youtu.be/vsp0fNUZScM)](https://www.youtube.com/watch?v=vsp0fNUZScM)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/vsp0fNUZScM?si=REtcueafBfAp3RTC" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 
 ## What it does
