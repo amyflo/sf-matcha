@@ -80,8 +80,20 @@ export function MatchaRecommender() {
         <button
           type="button"
           onClick={() => setShowOrderPanel(true)}
-          className="absolute left-3 top-3 z-20 rounded-full border border-matcha/30 bg-white/90 px-4 py-2 font-receipt text-[10px] uppercase tracking-[0.2em] text-matcha-dark shadow-[0_6px_16px_rgba(61,52,41,0.15)] transition hover:bg-white"
+          className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-matcha/30 bg-white/90 px-4 py-2 font-receipt text-[10px] uppercase tracking-[0.2em] text-matcha-dark shadow-[0_6px_16px_rgba(61,52,41,0.15)] transition hover:bg-white"
         >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M4 10h16v9H4z" />
+            <path d="M7 10V6h10v4" />
+            <path d="M8 14h8" />
+          </svg>
           order here
         </button>
       ) : null}

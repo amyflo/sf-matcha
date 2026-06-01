@@ -72,6 +72,9 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
   const [topZ, setTopZ] = useState(10);
   const [cardWidth, setCardWidth] = useState(420);
   const [cardHeights, setCardHeights] = useState<number[]>([]);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [printBatchId, setPrintBatchId] = useState(0);
+  const previousLoadingRef = useRef(loading);
 
   const deck = useMemo(() => (cafes && cafes.length > 0 ? cafes : []), [cafes]);
 
@@ -198,6 +201,26 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
     return () => observer.disconnect();
   }, [deck.length, cardWidth, loading, error]);
 
+  useEffect(() => {
+    const finishedLoadingWithResults =
+      previousLoadingRef.current && !loading && !error && deck.length > 0;
+    previousLoadingRef.current = loading;
+
+    if (!finishedLoadingWithResults) {
+      return;
+    }
+
+    setIsPrinting(true);
+    setPrintBatchId((prev) => prev + 1);
+
+    const durationMs = Math.min(2200, 900 + deck.length * 180);
+    const timeout = window.setTimeout(() => {
+      setIsPrinting(false);
+    }, durationMs);
+
+    return () => window.clearTimeout(timeout);
+  }, [loading, error, deck.length]);
+
   function bringToFront(index: number) {
     const nextZ = topZ + 1;
     setTopZ(nextZ);
@@ -207,6 +230,10 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
   }
 
   function handlePointerDown(index: number, event: React.PointerEvent) {
+    if (isPrinting) {
+      return;
+    }
+
     if (isInteractiveTarget(event.target)) {
       bringToFront(index);
       return;
@@ -256,6 +283,10 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
           </p>
         ) : null}
 
+        {isPrinting ? (
+          <div className="pointer-events-none absolute inset-0 z-15 animate-receipt-print-sweep bg-[linear-gradient(to_bottom,rgba(255,255,255,0)_0%,rgba(255,255,255,0.32)_50%,rgba(255,255,255,0)_100%)] bg-[length:100%_160px] bg-no-repeat" />
+        ) : null}
+
         <div
           className="relative min-h-full p-6 sm:p-8"
           style={{
@@ -285,7 +316,9 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
                       cardRefs.current[index] = node;
                     }}
                     className={`absolute select-none ${
-                      draggingIndex === index
+                      isPrinting
+                        ? "cursor-default"
+                        : draggingIndex === index
                         ? "cursor-grabbing"
                         : "cursor-grab"
                     }`}
@@ -302,7 +335,20 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
                     }}
                     onPointerDown={(event) => handlePointerDown(index, event)}
                   >
-                    <MatchaReceiptCard cafe={cafe} onDesk />
+                    <div
+                      key={`${printBatchId}-${index}`}
+                      className={isPrinting ? "animate-receipt-print-card" : ""}
+                      style={
+                        isPrinting
+                          ? {
+                              animationDelay: `${index * 140}ms`,
+                              animationFillMode: "both",
+                            }
+                          : undefined
+                      }
+                    >
+                      <MatchaReceiptCard cafe={cafe} onDesk />
+                    </div>
                   </div>
                 );
               })

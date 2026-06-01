@@ -37,10 +37,27 @@ export function MatchaSearchForm({ onSearch, loading }: Props) {
         <p className="font-receipt text-[11px] uppercase tracking-[0.22em] text-ink-soft">
           cashier lane
         </p>
-        <p className="mt-1 font-hand text-3xl text-matcha-dark">order here</p>
-        <span className="mt-2 inline-block rounded-full border border-matcha/35 bg-matcha-light/55 px-4 py-1 font-receipt text-[10px] uppercase tracking-[0.16em] text-matcha-dark">
-          {MATCHA_CITY} only
-        </span>
+        <div className="mt-1 flex flex-col items-center">
+          <p className="inline-flex items-center justify-center gap-2 font-hand text-3xl text-matcha-dark">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <path d="M4 10h16v9H4z" />
+              <path d="M7 10V6h10v4" />
+              <path d="M8 14h8" />
+              <path d="M16.5 14v5" />
+            </svg>
+            order here
+          </p>
+          <span className="mt-2 rounded-full border border-matcha/35 bg-matcha-light/55 px-4 py-1 font-receipt text-[10px] uppercase tracking-[0.16em] text-matcha-dark">
+            {MATCHA_CITY} only
+          </span>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
