@@ -1,6 +1,11 @@
 "use client";
 
 import { MatchaReceiptCard } from "@/app/components/matcha-receipt-card";
+import { useReceiptSound } from "@/app/components/receipt-sound-provider";
+import {
+  getReceiptPrintPhaseMs,
+  PRINT_STAGGER_MS,
+} from "@/lib/receipt-print-timing";
 import type { MatchaCafe } from "@/lib/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -15,12 +20,15 @@ type Props = {
   cafes: MatchaCafe[] | null;
   error: string | null;
   loading: boolean;
+  reprintRequestId?: number;
 };
 
 const DEFAULT_CARD_HEIGHT = 720;
 
 function deskCardWidth(deskWidth: number) {
-  return Math.min(340, Math.max(250, Math.floor(deskWidth * 0.28)));
+  const deskPadding = deskWidth < 640 ? 32 : 48;
+  const maxFit = deskWidth - deskPadding;
+  return Math.min(340, Math.max(220, maxFit));
 }
 
 function buildLayout(
@@ -30,16 +38,19 @@ function buildLayout(
   cardWidth: number,
   cardHeight: number,
 ): CardPosition[] {
-  const centerX = Math.max(20, (deskWidth - cardWidth) / 2);
-  const centerY = Math.max(32, (deskHeight - cardHeight) / 2);
+  const narrow = deskWidth < 640;
+  const spreadX = narrow ? 18 : 36;
+  const spreadY = narrow ? 10 : 16;
+  const centerX = Math.max(12, (deskWidth - cardWidth) / 2);
+  const centerY = Math.max(narrow ? 16 : 32, (deskHeight - cardHeight) / 2);
 
   if (count <= 1) {
     return [{ x: centerX, y: centerY, rotate: -2, z: 1 }];
   }
 
   return Array.from({ length: count }, (_, index) => ({
-    x: centerX + index * 36 - ((count - 1) * 36) / 2,
-    y: centerY + index * 16 - ((count - 1) * 16) / 2,
+    x: centerX + index * spreadX - ((count - 1) * spreadX) / 2,
+    y: centerY + index * spreadY - ((count - 1) * spreadY) / 2,
     rotate: -5 + index * 2.5,
     z: index + 1,
   }));
@@ -58,7 +69,13 @@ function isInteractiveTarget(target: EventTarget | null) {
   );
 }
 
-export function ReceiptDesk({ cafes, error, loading }: Props) {
+export function ReceiptDesk({
+  cafes,
+  error,
+  loading,
+  reprintRequestId = 0,
+}: Props) {
+  const { playReceiptPrint, playReceiptHandle, playPaperDown } = useReceiptSound();
   const deskRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dragRef = useRef<{
@@ -75,8 +92,29 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
   const [isPrinting, setIsPrinting] = useState(false);
   const [printBatchId, setPrintBatchId] = useState(0);
   const previousLoadingRef = useRef(loading);
+  const previousReprintRef = useRef(reprintRequestId ?? 0);
+  const printTimeoutRef = useRef<number | null>(null);
 
   const deck = useMemo(() => (cafes && cafes.length > 0 ? cafes : []), [cafes]);
+
+  const triggerPrint = useCallback(() => {
+    if (deck.length === 0) {
+      return;
+    }
+
+    if (printTimeoutRef.current !== null) {
+      window.clearTimeout(printTimeoutRef.current);
+    }
+
+    setIsPrinting(true);
+    setPrintBatchId((prev) => prev + 1);
+    playReceiptPrint(deck.length);
+
+    printTimeoutRef.current = window.setTimeout(() => {
+      setIsPrinting(false);
+      printTimeoutRef.current = null;
+    }, getReceiptPrintPhaseMs(deck.length));
+  }, [deck.length, playReceiptPrint]);
 
   const resetLayout = useCallback(() => {
     const desk = deskRef.current;
@@ -160,6 +198,9 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
     }
 
     function onPointerUp() {
+      if (dragRef.current) {
+        void playPaperDown();
+      }
       dragRef.current = null;
       setDraggingIndex(null);
     }
@@ -170,7 +211,7 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-  }, [draggingIndex, cardWidth, cardHeights]);
+  }, [draggingIndex, cardWidth, cardHeights, playPaperDown]);
 
   useEffect(() => {
     const nodes = cardRefs.current.filter(Boolean) as HTMLDivElement[];
@@ -210,16 +251,31 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
       return;
     }
 
-    setIsPrinting(true);
-    setPrintBatchId((prev) => prev + 1);
+    triggerPrint();
+  }, [loading, error, deck.length, triggerPrint]);
 
-    const durationMs = Math.min(2200, 900 + deck.length * 180);
-    const timeout = window.setTimeout(() => {
-      setIsPrinting(false);
-    }, durationMs);
+  useEffect(() => {
+    if (
+      reprintRequestId === 0 ||
+      reprintRequestId === previousReprintRef.current ||
+      loading ||
+      error ||
+      deck.length === 0
+    ) {
+      return;
+    }
 
-    return () => window.clearTimeout(timeout);
-  }, [loading, error, deck.length]);
+    previousReprintRef.current = reprintRequestId;
+    triggerPrint();
+  }, [reprintRequestId, loading, error, deck.length, triggerPrint]);
+
+  useEffect(() => {
+    return () => {
+      if (printTimeoutRef.current !== null) {
+        window.clearTimeout(printTimeoutRef.current);
+      }
+    };
+  }, []);
 
   function bringToFront(index: number) {
     const nextZ = topZ + 1;
@@ -255,30 +311,24 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
       offsetY: event.clientY - rect.top - pos.y,
     };
     setDraggingIndex(index);
+    playReceiptHandle();
   }
 
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col">
       <div
         ref={deskRef}
-        className="relative h-full min-h-0 flex-1 overflow-auto bg-[#b8b0a0] shadow-[inset_0_2px_16px_rgba(61,52,41,0.28)]"
+        className="desk-workspace relative h-full min-h-0 flex-1 overflow-auto"
       >
-        <div
-          className="pointer-events-none absolute inset-0 opacity-30"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(61,52,41,0.06) 28px, rgba(61,52,41,0.06) 29px)",
-          }}
-        />
 
         {error ? (
-          <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-lg text-red-900">
+          <p className="absolute inset-0 flex items-center justify-center px-4 text-center text-base text-red-900 sm:px-6 sm:text-lg">
             oops — {error}
           </p>
         ) : null}
 
         {loading ? (
-          <p className="absolute inset-0 flex items-center justify-center font-hand text-3xl text-ink animate-pulse">
+          <p className="absolute inset-0 flex items-center justify-center px-4 text-center font-hand text-2xl text-ink animate-pulse sm:text-3xl">
             brewing...
           </p>
         ) : null}
@@ -288,7 +338,7 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
         ) : null}
 
         <div
-          className="relative min-h-full p-6 sm:p-8"
+          className="relative min-h-full p-4 sm:p-6 md:p-8"
           style={{
             minHeight:
               positions.length > 0 && cardHeights.length > 0
@@ -341,7 +391,7 @@ export function ReceiptDesk({ cafes, error, loading }: Props) {
                       style={
                         isPrinting
                           ? {
-                              animationDelay: `${index * 140}ms`,
+                              animationDelay: `${index * PRINT_STAGGER_MS}ms`,
                               animationFillMode: "both",
                             }
                           : undefined

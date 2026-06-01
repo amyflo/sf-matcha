@@ -5,6 +5,7 @@ import { ReviewPhotoCarousel } from "@/app/components/review-photo-carousel";
 import { ReceiptEdge } from "@/app/components/receipt-edge";
 import { FakeReceiptBarcode } from "@/app/components/fake-receipt-barcode";
 import { YelpStars } from "@/app/components/yelp-stars";
+import { googleMapsOpenUrl } from "@/lib/maps-embed";
 import type { MatchaCafe } from "@/lib/types";
 import { useState } from "react";
 
@@ -24,9 +25,7 @@ export function MatchaReceiptCard({
   const wrapperClass = onDesk
     ? "relative w-full shadow-[0_16px_32px_rgba(61,52,41,0.22)]"
     : `relative transition-all duration-200 hover:-translate-y-1 hover:rotate-0 hover:shadow-[0_14px_28px_rgba(61,52,41,0.12)] ${tiltClass}`;
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    cafe.address,
-  )}`;
+  const googleMapsUrl = googleMapsOpenUrl(cafe.address, cafe.link, cafe.name);
 
   const addressParts = cafe.address
     .split(",")
@@ -40,7 +39,7 @@ export function MatchaReceiptCard({
       <article
         className={`mx-auto flex w-full flex-col rounded-none border border-ink/10 bg-gradient-to-b from-[#fffefb] to-[#f9f5ec] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(61,52,41,0.12)] ${
           onDesk
-            ? "max-w-none overflow-hidden text-[1rem]"
+            ? "max-w-none overflow-hidden text-[0.9375rem] sm:text-[1rem]"
             : "max-w-sm overflow-hidden text-[0.95rem]"
         }`}
       >
@@ -48,8 +47,8 @@ export function MatchaReceiptCard({
 
         {onDesk ? (
           <div className="flex flex-col">
-            <header className="border-b border-dashed border-ink/20 px-4 pb-3 pt-4 text-center">
-              <h3 className="mt-1 font-receipt text-xl leading-none tracking-wide text-ink break-words">
+            <header className="border-b border-dashed border-ink/20 px-3 pb-3 pt-3 text-center sm:px-4 sm:pt-4">
+              <h3 className="mt-1 font-receipt text-lg leading-tight tracking-wide text-ink break-words sm:text-xl sm:leading-none">
                 {cafe.name}
               </h3>
               <p className="mt-1.5 font-receipt text-[10px] tracking-wide text-ink-soft">
@@ -61,7 +60,7 @@ export function MatchaReceiptCard({
             </header>
 
             {cafe.drinkImages.length > 0 ? (
-              <div className="border-b border-dashed border-ink/20 p-3">
+              <div className="border-b border-dashed border-ink/20 p-2.5 sm:p-3">
                 <div
                   className="overflow-hidden border border-ink/15"
                   data-no-drag
@@ -79,7 +78,7 @@ export function MatchaReceiptCard({
               </div>
             ) : null}
 
-            <section className="border-b border-dashed border-ink/20 px-4 py-3">
+            <section className="border-b border-dashed border-ink/20 px-3 py-2.5 sm:px-4 sm:py-3">
               <p className="font-receipt text-[9px] uppercase tracking-[0.2em] text-ink-soft">
                 menu picks
               </p>
@@ -102,7 +101,7 @@ export function MatchaReceiptCard({
               </div>
             </section>
 
-            <section className="px-4 pb-4 pt-3">
+            <section className="px-3 pb-3 pt-2.5 sm:px-4 sm:pb-4 sm:pt-3">
               <div className="flex items-start justify-between gap-2">
                 <a
                   href={googleMapsUrl}

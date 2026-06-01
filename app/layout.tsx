@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { ReceiptSoundProvider } from "@/app/components/receipt-sound-provider";
+import { WoodBackground } from "@/app/components/wood-background";
 import { Caveat, Patrick_Hand, Special_Elite } from "next/font/google";
 import "./globals.css";
 
@@ -35,8 +37,11 @@ export default function RootLayout({
       lang="en"
       className={`${caveat.variable} ${patrickHand.variable} ${specialElite.variable} h-dvh antialiased`}
     >
-      <body className="flex h-dvh flex-col overflow-hidden bg-paper font-menu text-ink antialiased">
-        {children}
+      <body className="relative flex h-dvh min-h-0 flex-col overflow-hidden font-menu text-ink antialiased">
+        <ReceiptSoundProvider>
+          <WoodBackground />
+          {children}
+        </ReceiptSoundProvider>
       </body>
     </html>
   );

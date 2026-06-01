@@ -7,6 +7,13 @@ export async function POST(request: Request) {
     const body = (await request.json()) as { query?: string };
     const query = body.query?.trim() ?? "";
 
+    if (!query) {
+      return NextResponse.json(
+        { error: "Please describe what you're looking for." },
+        { status: 400 },
+      );
+    }
+
     if (!process.env.EXA_API_KEY) {
       return NextResponse.json({
         cafes: [EXAMPLE_CAFE],

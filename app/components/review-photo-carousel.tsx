@@ -1,5 +1,6 @@
 "use client";
 
+import { PhotoCarouselNavButton } from "@/app/components/photo-carousel-nav-button";
 import { PhotoLightbox } from "@/app/components/photo-lightbox";
 import { useEffect, useState } from "react";
 
@@ -47,10 +48,17 @@ export function ReviewPhotoCarousel({
   }
 
   const imageHeightClass =
-    size === "hero" ? (onDesk ? "h-56" : "h-48") : onDesk ? "h-44" : "h-40";
+    size === "hero"
+      ? onDesk
+        ? "h-44 sm:h-56"
+        : "h-40 sm:h-48"
+      : onDesk
+        ? "h-36 sm:h-44"
+        : "h-36 sm:h-40";
 
   const current = images[index];
   const currentLabel = labels[index];
+  const positionHint = `${index + 1} of ${images.length}`;
 
   function go(delta: number) {
     onIndexChangeAction((index + delta + images.length) % images.length);
@@ -96,33 +104,29 @@ export function ReviewPhotoCarousel({
             loading={index === 0 ? "eager" : "lazy"}
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-x-0 bottom-0 flex items-end justify-end gap-2 bg-gradient-to-t from-ink/70 to-transparent px-3 pb-2.5 pt-6">
-            <span className="font-receipt text-[10px] uppercase tracking-wider text-white/85">
-              {index + 1} / {images.length}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-end gap-2 bg-gradient-to-t from-ink/70 to-transparent px-3 pb-8 pt-6 sm:pb-7">
+            <span className="font-receipt text-[10px] uppercase tracking-wider text-white/90">
+              {positionHint}
             </span>
           </div>
         </button>
 
         {images.length > 1 ? (
           <>
-            <button
-              type="button"
-              className="absolute inset-y-0 left-2 z-2 my-auto flex h-8 w-8 items-center justify-center rounded-full border border-white/50 bg-white/85 text-xl leading-none text-ink"
+            <PhotoCarouselNavButton
+              direction="prev"
+              positionHint={positionHint}
               onClick={() => go(-1)}
-              aria-label="Previous photo"
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              className="absolute inset-y-0 right-2 z-2 my-auto flex h-8 w-8 items-center justify-center rounded-full border border-white/50 bg-white/85 text-xl leading-none text-ink"
+              className="absolute left-1.5 top-1/2 z-10 -translate-y-1/2 sm:left-2"
+            />
+            <PhotoCarouselNavButton
+              direction="next"
+              positionHint={positionHint}
               onClick={() => go(1)}
-              aria-label="Next photo"
-            >
-              ›
-            </button>
+              className="absolute right-1.5 top-1/2 z-10 -translate-y-1/2 sm:right-2"
+            />
             <div
-              className="absolute bottom-2 left-1/2 z-2 flex -translate-x-1/2 gap-1.5"
+              className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1.5"
               role="tablist"
               aria-label="Review photos"
             >
@@ -132,14 +136,21 @@ export function ReviewPhotoCarousel({
                   type="button"
                   role="tab"
                   aria-selected={dotIndex === index}
-                  aria-label={`Photo ${dotIndex + 1}`}
-                  className={`rounded-full border-0 p-0 ${
-                    dotIndex === index
-                      ? "h-1.5 w-4 bg-white"
-                      : "h-1.5 w-1.5 bg-white/55"
-                  }`}
-                  onClick={() => onIndexChangeAction(dotIndex)}
-                />
+                  aria-label={`Photo ${dotIndex + 1} of ${images.length}`}
+                  className="flex min-h-8 min-w-8 items-center justify-center rounded-full border-0 bg-transparent p-2"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onIndexChangeAction(dotIndex);
+                  }}
+                >
+                  <span
+                    className={`block rounded-full ${
+                      dotIndex === index
+                        ? "h-1.5 w-4 bg-white shadow-[0_0_0_1px_rgba(61,52,41,0.15)]"
+                        : "h-1.5 w-1.5 bg-white/55"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           </>

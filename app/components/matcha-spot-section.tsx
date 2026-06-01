@@ -14,8 +14,8 @@ export function MatchaSpotSection({ cafe, onDesk = false }: Props) {
     return null;
   }
 
-  const mapsEmbed = googleMapsEmbedUrl(cafe.address, cafe.link);
-  const mapsOpen = googleMapsOpenUrl(cafe.address, cafe.link);
+  const mapsEmbed = googleMapsEmbedUrl(cafe.address, cafe.link, cafe.name);
+  const mapsOpen = googleMapsOpenUrl(cafe.address, cafe.link, cafe.name);
 
   return (
     <div className="mt-4 overflow-hidden rounded-xl border-2 border-dashed border-matcha/35 bg-white p-1.5">

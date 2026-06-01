@@ -1,6 +1,12 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
+
+# other package managers (pnpm only)
+package-lock.json
+yarn.lock
+bun.lockb
+bun.lock
 /node_modules
 /.pnp
 .pnp.*

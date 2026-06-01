@@ -26,7 +26,7 @@ export function CopyAddressButton({ address }: Props) {
       onClick={handleCopy}
       aria-label={copied ? "Address copied" : "Copy address"}
       title={copied ? "Copied" : "Copy address"}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-matcha/30 bg-matcha-light/50 text-matcha-dark transition hover:bg-matcha-light"
+      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-matcha/30 bg-matcha-light/50 text-matcha-dark transition hover:bg-matcha-light sm:h-7 sm:w-7"
     >
       {copied ? (
         <Check className="h-4 w-4" aria-hidden="true" />

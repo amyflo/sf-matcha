@@ -1,7 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { PhotoCarouselNavButton } from "@/app/components/photo-carousel-nav-button";
+import { useReceiptSound } from "@/app/components/receipt-sound-provider";
+import { useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
 
 type Props = {
   openUrl: string | null;
@@ -22,94 +32,111 @@ export function PhotoLightbox({
   onClose,
   onNavigate,
 }: Props) {
-  const [mounted, setMounted] = useState(false);
+  const { setPreviewOpen } = useReceiptSound();
+  const mounted = useIsClient();
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setPreviewOpen(!!openUrl);
+    return () => setPreviewOpen(false);
+  }, [openUrl, setPreviewOpen]);
 
   useEffect(() => {
-    if (!openUrl) {
+    if (!openUrl || openIndex < 0) {
       return;
     }
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (event.key === "ArrowLeft" && openIndex > 0) {
+        onNavigate(images[openIndex - 1]);
+      }
+      if (event.key === "ArrowRight" && openIndex < images.length - 1) {
+        onNavigate(images[openIndex + 1]);
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
     };
-  }, [openUrl]);
+  }, [openUrl, openIndex, images, onClose, onNavigate]);
 
-  if (!openUrl || !mounted) {
+  if (!openUrl || !mounted || openIndex < 0) {
     return null;
   }
 
   const label =
-    openIndex >= 0
-      ? `${labels[openIndex] ?? "review photo"} at ${cafeName}`
-      : `Review photo at ${cafeName}`;
+    `${labels[openIndex] ?? "review photo"} at ${cafeName}`;
+  const positionHint = `${openIndex + 1} of ${images.length}`;
+  const canGoPrev = openIndex > 0;
+  const canGoNext = openIndex < images.length - 1;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex min-h-dvh flex-col bg-ink/85"
+      className="fixed inset-0 z-[9999] flex min-h-dvh flex-col bg-ink/88"
       role="dialog"
       aria-modal="true"
       aria-label="Review photo preview"
       onClick={onClose}
     >
       <div className="flex shrink-0 items-center justify-between px-4 py-4 sm:px-6">
-        <p className="font-hand text-2xl text-white sm:text-3xl">{cafeName}</p>
+        <p className="font-hand text-2xl text-paper sm:text-3xl">{cafeName}</p>
         <button
           type="button"
-          className="rounded-full border border-white/30 bg-white/10 px-4 py-2 font-receipt text-[10px] uppercase tracking-widest text-white backdrop-blur-sm hover:bg-white/20"
-          onClick={onClose}
+          className="min-h-11 rounded-full border border-paper/35 bg-paper/15 px-4 py-2.5 font-receipt text-[10px] uppercase tracking-widest text-paper backdrop-blur-sm hover:bg-paper/25 sm:min-h-0 sm:py-2"
+          onClick={(event) => {
+            event.stopPropagation();
+            onClose();
+          }}
         >
           close
         </button>
       </div>
 
       <div
-        className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 pb-6 sm:px-8"
+        className="flex min-h-0 flex-1 flex-col items-center justify-center px-2 pb-6 sm:px-6"
         onClick={(event) => event.stopPropagation()}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={openUrl}
-          alt={label}
-          className="max-h-[calc(100dvh-10rem)] w-full max-w-6xl object-contain"
-          referrerPolicy="no-referrer"
-        />
+        <div className="relative w-full max-w-6xl px-10 sm:px-14">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={openUrl}
+            alt={label}
+            className="mx-auto max-h-[calc(100dvh-11rem)] w-full object-contain"
+            referrerPolicy="no-referrer"
+          />
+          <PhotoCarouselNavButton
+            direction="prev"
+            positionHint={positionHint}
+            disabled={!canGoPrev}
+            onClick={() => onNavigate(images[openIndex - 1])}
+            className="absolute left-0 top-1/2 z-10 -translate-y-1/2 sm:left-2"
+          />
+          <PhotoCarouselNavButton
+            direction="next"
+            positionHint={positionHint}
+            disabled={!canGoNext}
+            onClick={() => onNavigate(images[openIndex + 1])}
+            className="absolute right-0 top-1/2 z-10 -translate-y-1/2 sm:right-2"
+          />
+        </div>
 
         {labels[openIndex] ? (
-          <p className="mt-4 text-center font-hand text-2xl text-white">
+          <p className="mt-4 max-w-2xl px-4 text-center font-hand text-2xl text-paper">
             {labels[openIndex]}
           </p>
         ) : null}
 
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          {openIndex > 0 ? (
-            <button
-              type="button"
-              className="rounded-full border border-white/30 bg-white/10 px-5 py-2.5 font-receipt text-[10px] uppercase tracking-widest text-white backdrop-blur-sm hover:bg-white/20"
-              onClick={() => onNavigate(images[openIndex - 1])}
-            >
-              prev
-            </button>
-          ) : null}
-          {openIndex < images.length - 1 ? (
-            <button
-              type="button"
-              className="rounded-full border border-white/30 bg-white/10 px-5 py-2.5 font-receipt text-[10px] uppercase tracking-widest text-white backdrop-blur-sm hover:bg-white/20"
-              onClick={() => onNavigate(images[openIndex + 1])}
-            >
-              next
-            </button>
-          ) : null}
-        </div>
-
-        <p className="mt-4 font-receipt text-[10px] uppercase tracking-widest text-white/70">
-          {openIndex + 1} / {images.length}
+        <p className="mt-4 font-receipt text-[10px] uppercase tracking-widest text-paper/75">
+          {positionHint}
         </p>
       </div>
     </div>,
