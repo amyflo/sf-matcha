@@ -3,13 +3,18 @@
 import { MATCHA_CITY } from "@/lib/constants";
 import { useState } from "react";
 
-const VIBE_OPTIONS = [
-  "ceremonial & quiet",
-  "best matcha latte",
-  "pastries + matcha",
-  "hidden gem",
-  "study-friendly",
-] as const;
+const VIBE_PROMPTS = {
+  "ceremonial & quiet":
+    "I want a calm, low-noise cafe in San Francisco with strong ceremonial-grade matcha, minimal crowds, and a cozy atmosphere for a slow afternoon.",
+  "best matcha latte":
+    "Find San Francisco cafes known for rich, balanced matcha lattes with high-quality powder, good milk texture, and consistently strong reviews.",
+  "pastries + matcha":
+    "Recommend San Francisco spots with excellent matcha drinks and standout pastries or desserts so I can get both at one stop.",
+  "hidden gem":
+    "I am looking for lesser-known San Francisco matcha cafes that feel like hidden gems, with great quality and fewer tourists.",
+  "study-friendly":
+    "Suggest San Francisco matcha cafes that are good for studying, with comfortable seating, reliable wifi, and a quieter vibe.",
+} as const;
 
 type Props = {
   onSearch: (query: string) => void;
@@ -52,17 +57,19 @@ export function MatchaSearchForm({ onSearch, loading }: Props) {
           />
         </label>
 
-        <div className="flex flex-wrap gap-2 border-b border-dashed border-ink/20 pb-4">
-          {VIBE_OPTIONS.map((vibe) => (
-            <button
-              key={vibe}
-              type="button"
-              onClick={() => setQuery(vibe)}
-              className="rounded-full border border-blush/70 bg-blush/35 px-3 py-1.5 font-receipt text-[10px] uppercase tracking-[0.12em] text-ink transition hover:bg-blush/55"
-            >
-              {vibe}
-            </button>
-          ))}
+        <div className="border-b border-dashed border-ink/20 pb-4">
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            {Object.entries(VIBE_PROMPTS).map(([vibe, detailedPrompt]) => (
+              <button
+                key={vibe}
+                type="button"
+                onClick={() => setQuery(detailedPrompt)}
+                className="shrink-0 rounded-full border border-blush/70 bg-blush/35 px-3 py-1.5 font-receipt text-[10px] uppercase tracking-[0.12em] text-ink transition hover:bg-blush/55"
+              >
+                {vibe}
+              </button>
+            ))}
+          </div>
         </div>
 
         <button
